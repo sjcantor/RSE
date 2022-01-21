@@ -84,10 +84,10 @@ def process_dataset():
 
 
 if __name__ == "__main__":
-    if not os.path.exists(f"musicnet_11khz.npz"):
-        if not os.path.exists(f"musicnet.npz"):
+    if not os.path.exists(f"musicnet_data/musicnet_11khz.npz"):
+        if not os.path.exists(f"musicnet_data/musicnet.npz"):
             download()
             process_dataset()
             run(["rm", '-r', os.path.join(dir_path, 'musicnet.tar.gz'), raw_folder_path])  # remove temporary files
-        resample_musicnet("musinet.npz", "musicnet_11khz.npz", 44100, 11000)  # resample to 11khz
-        run(["rm", os.path.join(dir_path, 'musinet.npz')])  # remove a temporary file
+        resample_musicnet("musicnet_data/musicnet.npz", "musicnet_data/musicnet_11khz.npz", 44100, 11000)  # resample to 11khz
+        run(["rm", os.path.join(dir_path, 'musicnet_data/musinet.npz')])  # remove a temporary file
