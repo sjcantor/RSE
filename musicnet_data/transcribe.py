@@ -26,6 +26,11 @@ def wav_to_npz(filename_wav):
         normed_data = data / (np.linalg.norm(data) + 10e-6)  # converts to interval [-1, 1]
     else:
         normed_data = data
+
+    # Handle stereo wave files
+    if data.shape[1] == 2:
+        data = [(data[i,0] + data[i,1])/2 for i in data]
+
     padding = np.zeros(samplerate, dtype=np.float32)
     padded_data = np.concatenate((padding, normed_data), axis=0)  # add 1 second for parser to cut off
     padded_data = padded_data.astype('float32')
