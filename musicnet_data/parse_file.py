@@ -23,7 +23,7 @@ data_type = 'float32'
 
 np_load_old = np.load
 np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
-data = np.load(open('musicnet_11khz.npz', 'rb'), encoding='latin1', mmap_mode='r')
+data = np.load(open('musicnet_data\musicnet_11khz.npz', 'rb'), encoding='latin1', mmap_mode='r')
 np.load = np_load_old
 
 # split the dataset into train, validation and test
@@ -36,7 +36,7 @@ def create_set(recording_IDs, stride, mode, filename=None):
     """Create a set of input - label pairs."""
 
     str_fourier = f"fourier{fourier_multiplier}" if do_fourier_transform else "raw"
-    if filename is None: filename = f"musicnet_{str_fourier}_{mode}_{n_features}.npy"
+    if filename is None: filename = f"musicnet_data\musicnet_{str_fourier}_{mode}_{n_features}.npy"
 
     label_indices = []  # list of the indices of the labels within a window. E.g. [128, 256, 384] for n_features=512
     stride_labels = stride_test  # stride for labels and notes_test is the same
@@ -80,10 +80,12 @@ def create_set(recording_IDs, stride, mode, filename=None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filename')
-    args = parser.parse_args()
-    if args.filename:
+    print('test1')
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument('filename')
+    #args = parser.parse_args()
+    print('test2')
+    if False:#args.filename:
         np_load_old = np.load
         np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
         data = np.load(open(args.filename, 'rb'), encoding='latin1', mmap_mode='r')
@@ -91,6 +93,7 @@ if __name__ == "__main__":
         print("Creating", f"{args.filename[:-10]}.npy")
         create_set(recording_IDs=['0'], stride=stride_test, mode="test", filename=f"{args.filename[:-10]}.npy")
     else:
+        print("made it")
         create_set(recording_IDs=test_IDs, stride=stride_test, mode="test")
         create_set(recording_IDs=validation_IDs, stride=stride_test, mode="validation")
         create_set(recording_IDs=train_IDs, stride=stride_train, mode="train")
