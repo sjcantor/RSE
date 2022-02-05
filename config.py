@@ -8,9 +8,9 @@ tf_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions
 """Local storage (checkpoints, etc)."""
 use_two_gpus = False
 gpu_instance = "0"
-out_dir = "/host-dir/gpu" + gpu_instance
-model_file = out_dir + "/varWeights.ckpt"
-image_path = out_dir + "/images"
+out_dir = r"C:\Users\Mitchell\Desktop\capstone\RSE-automationgpu" + gpu_instance
+model_file = out_dir + "\\varWeights.ckpt"
+image_path = out_dir + "\\images"
 log_filename = ""
 
 """Model configuration"""
@@ -29,7 +29,7 @@ batch_size = 32
 data_size = 10000
 bins = [8, 16, 32, 64]
 n_Benes_blocks = 2
-load_prev = False  # load a saved model
+load_prev = True#False  # load a saved model
 num_warmup_steps = 0
 
 """Test configuration"""
@@ -38,8 +38,8 @@ test_data_size = 1024
 
 """MusicNet configuration"""
 musicnet_window_size = 8192  # power of two within [256, 8192]
-musicnet_do_fourier_transform = False  # use dataset pre-processed with Fourier transform
-musicnet_fourier_multiplier = 1  # use dataset with first values from x times larger Fourier window (1 = whole window)
+musicnet_do_fourier_transform = True#False  # use dataset pre-processed with Fourier transform
+musicnet_fourier_multiplier = 2#1  # use dataset with first values from x times larger Fourier window (1 = whole window)
 musicnet_file_window_size = 8192  # select .npy dataset files with this non-cropped window size
 musicnet_visualise = False  # disables validation data shuffling for better visualisation
 musicnet_subset = True  # loads a subset of train_set to save RAM. Frequently loads a different subset with np memmap
@@ -50,7 +50,7 @@ musicnet_full_test_step = 100000  # each x steps full validation test is launche
 musicnet_vocab_size = 128  # number of labels (notes)
 
 """Lambada configuration"""
-lambada_data_dir = "/host-dir/lambada-dataset"
+lambada_data_dir = r"C:\Users\Mitchell\Desktop\capstone\RSE-automationlambada-dataset"
 lambada_vocab_size = 999996
 
 """Data preparation"""
@@ -59,7 +59,7 @@ disperse_padding = False  # insert random blanks in the sequence
 
 """Embedding configuration"""
 use_pre_trained_embedding = False
-base_folder = "/host-dir/embeddings/"
+base_folder = "C:\\Users\\Mitchell\\Desktop\\capstone\\RSE-automationembeddings\\"
 embedding_file = base_folder + "fast_word_embedding.vec"
 emb_vector_file = base_folder + "emb_vectors.bin"
 emb_word_dictionary = base_folder + "word_dict.bin"
@@ -71,10 +71,10 @@ all_tasks = {"sort", "kvsort", "id", "rev", "rev2", "incr", "add", "left", "righ
 language_tasks = {"lambada", "musicnet"}
 
 """Recommended settings for binary addition"""
-task = "badd"
-n_input = 13  # range of input digits
-n_output = 4  # range of output digits
-n_hidden = 48 * 4  # number of maps
+# task = "badd"
+# n_input = 13  # range of input digits
+# n_output = 4  # range of output digits
+# n_hidden = 48 * 4  # number of maps
 
 """Recommended settings for rotation"""
 # task = "rol"
@@ -173,21 +173,21 @@ n_hidden = 48 * 4  # number of maps
 # bins = [256]
 
 """Recommended settings for MusicNet"""
-# task = "musicnet"
-# n_Benes_blocks = 2  # depth of the model
-# n_hidden = 48 * 4  # first layer size of RSU (2m)
-# batch_size = 16
-# training_iters = 100000 + 1
-# input_word_dropout_keep_prob = 1.0
-# label_smoothing = 0.01
-# embedding_size = 1
-# max_test_length = 10000
-# test_data_size = 10000
-# input_type = tf.float32
-# n_input = musicnet_vocab_size
-# n_output = musicnet_vocab_size
-# bins = [musicnet_window_size]
-# musicnet_resample_step = musicnet_mmap_count // (batch_size+1)  # each x steps resamples if musicnet_resample == True
+task = "musicnet"
+n_Benes_blocks = 2  # depth of the model
+n_hidden = 48 * 4  # first layer size of RSU (2m)
+batch_size = 16
+training_iters = 2001#1700#850#150#3000#100000 + 1
+input_word_dropout_keep_prob = 1.0
+label_smoothing = 0.01
+embedding_size = 1
+max_test_length = 10000
+test_data_size = 10000
+input_type = tf.float32
+n_input = musicnet_vocab_size
+n_output = musicnet_vocab_size
+bins = [musicnet_window_size]
+musicnet_resample_step = musicnet_mmap_count // (batch_size+1)  # each x steps resamples if musicnet_resample == True
 
 
 initial_learning_rate = 0.00125 * np.sqrt(96 / n_hidden)
