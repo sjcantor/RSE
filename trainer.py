@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
 """Code for training the Residual Shuffle-Exchange model"""
 
 import sys
@@ -205,6 +206,7 @@ with tf.Graph().as_default():
         train_writer = tf.summary.FileWriter(output_dir)
 
         if cnf.load_prev:
+            print("Found previous model weights, restoring session...")
             saver1 = tf.train.Saver([var for var in tf.trainable_variables()])
             saver1.restore(sess, cnf.model_file)
 
@@ -287,7 +289,15 @@ with tf.Graph().as_default():
                 train_writer.add_summary(aps_test_summary, step)
                 train_writer.add_summary(image_summary, step)
                 train_writer.flush()
-
+                
+            # MusicNet - incremental model saving
+            musicnet_save_step = 100
+            if cnf.task == "musicnet" and step % musicnet_save_step == 0:
+                print(f'Saving the model at {step} steps...')
+                saver.save(sess, cnf.model_file)
+                print('Saved.')
+                
+                
             # MusicNet - reloading a subset of the training data
             if cnf.task == "musicnet" and cnf.musicnet_subset and step % cnf.musicnet_resample_step == 0:
                 print("Reloading a subset of the training data...", flush=True)
@@ -305,7 +315,8 @@ with tf.Graph().as_default():
         print("Optimization Finished!")
 
         # MusicNet - testing
-        if cnf.task == "musicnet":
+        musicnet_perform_test = False
+        if cnf.task == "musicnet" and musicnet_perform_test:
             print("Testing the trained model on the full test set...")
             task.prepare_test_data()
             data_gen.test_counters = np.zeros(cnf.bin_max_len, dtype=np.int32)  # reset test counters
@@ -313,8 +324,11 @@ with tf.Graph().as_default():
             train_writer.add_summary(aps_test_summary, step)
             train_writer.add_summary(image_summary, step)
             train_writer.flush()
-
+        elif not musicnet_perform_test:
+            print("Not performing a final test on the full test set.")
+        print("Saving model...")
         saver.save(sess, cnf.model_file)
+        print("Model saved.")
 
 
 # Test the generalization to longer examples
