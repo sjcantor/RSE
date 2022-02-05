@@ -9,15 +9,16 @@ import data_utils
 from language.utils import LanguageTask
 
 str_fourier = f"fourier{cnf.musicnet_fourier_multiplier}" if cnf.musicnet_do_fourier_transform else "raw"
-MUSICNET_TRAIN = f"musicnet_data/musicnet_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy"
-MUSICNET_VALIDATION = f"musicnet_data/musicnet_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy"
-MUSICNET_TEST = f"musicnet_data/musicnet_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy"
+MUSICNET_TRAIN = f"musicnet_data\musicnet_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy"
+MUSICNET_VALIDATION = f"musicnet_data\musicnet_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy"
+MUSICNET_TEST = f"musicnet_data\musicnet_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy"
 
 def get_parsed_musicnet():
     print("No training set found that matches config.py. Getting musicnet and parsing it.")
-    run(["python3", "musicnet_data/get_musicnet.py"])  # download musicnet if it is missing
-    run(["python3", "musicnet_data/parse_file.py"])  # parse file so it can be processed by the model
-
+    run(["python", "musicnet_data\get_musicnet.py"])  # download musicnet if it is missing
+    print('1')
+    run(["python", "musicnet_data\parse_file.py"])  # parse file so it can be processed by the model
+    print('2')
 
 class Musicnet(LanguageTask):
     def __init__(self) -> None:
