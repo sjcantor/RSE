@@ -5,6 +5,7 @@ Instructions:
     python3 transcribe.py <filename>.wav
 """
 
+from distutils import dir_util
 import os
 import argparse
 import numpy as np
@@ -14,8 +15,9 @@ from intervaltree import IntervalTree
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import mido
+import config as cnf
 
-from resample import resample_musicnet
+from musicnet_data.resample import resample_musicnet
 
 
 def wav_to_npz(filename_wav):
@@ -27,9 +29,9 @@ def wav_to_npz(filename_wav):
     else:
         normed_data = data
 
-    # Handle stereo wave files
-    if data.shape[1] == 2:
-        data = [(data[i,0] + data[i,1])/2 for i in data]
+    # TODO - the below is a smarter way of doing this, but was having some issues. Fix later. It's also slow.
+    if len(data.shape) > 1 and data.shape[1] == 2:
+        data = np.array([(data[i,0] + data[i,1])/2 for i in data])[:,0] # average chanels, convert to numpy, remove 2nd row
 
     padding = np.zeros(samplerate, dtype=np.float32)
     padded_data = np.concatenate((padding, normed_data), axis=0)  # add 1 second for parser to cut off
@@ -194,9 +196,10 @@ if __name__ == "__main__":
     if not os.path.exists(results_file_path):
         samplerate = wav_to_npz(args.filename_wav)  # wav -> npz
         resample_musicnet(f"{filename}.npz", f"{filename}_11khz.npz", samplerate, 11000)  # resample to 11khz
-        run(["python3", "parse_file.py", f"{filename}_11khz.npz"])  # parse file so it can be processed by the model
-        tester_path = f"{os.path.join(dir_path, '..', 'tester.py')}"
-        run(["python3", tester_path, inference_file_path, f"{filename}_results.npy"])  # run inference
+        parse_file_path = os.path.join(dir_path, "musicnet_data", "parse_file.py")
+        run([cnf.python_ver, parse_file_path, f"{filename}_11khz.npz"])  # parse file so it can be processed by the model
+        tester_path = f"{os.path.join(dir_path, 'tester.py')}"
+        run([cnf.python_ver, tester_path, inference_file_path, f"{filename}_results.npy"])  # run inference
         run(["rm", f"{filename}.npz", f"{filename}_11khz.npz", f"{filename}.npy"])  # remove temporary files
     else:
         print(f"{results_file_path} already exists. Proceeding with the existing version")

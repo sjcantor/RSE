@@ -10,6 +10,7 @@ import argparse
 import numpy as np
 from numpy.lib.format import open_memmap
 from scipy.fft import rfft  # real fast Fourier transform
+import os
 
 n_features = 8192  # number of features (the window size)
 do_fourier_transform = True
@@ -23,13 +24,15 @@ data_type = 'float32'
 
 np_load_old = np.load
 np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
-data = np.load(open('musicnet_11khz.npz', 'rb'), encoding='latin1', mmap_mode='r')
+dir_path = os.path.dirname(os.path.abspath(__file__)) # absolute path to where this file is (musicnet_data/)
+# TODO - when transcribe calls this file, it shouldn't try to grab the dataset
+# data = np.load(open(os.path.join(dir_path, 'musicnet_11khz.npz'), 'rb'), encoding='latin1', mmap_mode='r')
 np.load = np_load_old
 
 # split the dataset into train, validation and test
 test_IDs = ['2303', '2382', '1819']
 validation_IDs = ['2131', '2384', '1792', '2514', '2567', '1876']
-train_IDs = [ID for ID in data.files if ID not in (test_IDs + validation_IDs)]
+# train_IDs = [ID for ID in data.files if ID not in (test_IDs + validation_IDs)]
 
 
 def create_set(recording_IDs, stride, mode, filename=None):

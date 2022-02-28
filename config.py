@@ -1,5 +1,10 @@
+from email.mime import base
 import numpy as np
 import tensorflow as tf
+import os
+
+"""Python configuration"""
+python_ver = 'python3'
 
 """Tensorflow configuration"""
 tf_config = tf.ConfigProto()
@@ -8,9 +13,11 @@ tf_config.graph_options.optimizer_options.global_jit_level = tf.OptimizerOptions
 """Local storage (checkpoints, etc)."""
 use_two_gpus = False
 gpu_instance = "0"
-out_dir = "/host-dir/gpu" + gpu_instance
-model_file = out_dir + "/varWeights.ckpt"
-image_path = out_dir + "/images"
+repo_dir = os.path.dirname(os.path.abspath(__file__))
+model_output = 'gpu_training'
+out_dir = os.path.join(repo_dir, model_output)
+model_file = os.path.join(out_dir, 'varWeights.ckpt')
+image_path = os.path.join(out_dir, 'images')
 log_filename = ""
 
 """Model configuration"""
@@ -50,7 +57,7 @@ musicnet_full_test_step = 100000  # each x steps full validation test is launche
 musicnet_vocab_size = 128  # number of labels (notes)
 
 """Lambada configuration"""
-lambada_data_dir = "/host-dir/lambada-dataset"
+lambada_data_dir = os.path.join(repo_dir, 'lambada-dataset')
 lambada_vocab_size = 999996
 
 """Data preparation"""
@@ -59,10 +66,10 @@ disperse_padding = False  # insert random blanks in the sequence
 
 """Embedding configuration"""
 use_pre_trained_embedding = False
-base_folder = "/host-dir/embeddings/"
-embedding_file = base_folder + "fast_word_embedding.vec"
-emb_vector_file = base_folder + "emb_vectors.bin"
-emb_word_dictionary = base_folder + "word_dict.bin"
+base_folder = os.path.join(repo_dir, 'embeddings')
+embedding_file = os.path.join(base_folder, "fast_word_embedding.vec")
+emb_vector_file = os.path.join(base_folder, "emb_vectors.bin")
+emb_word_dictionary = os.path.join(base_folder, "word_dict.bin")
 
 """Task configuration"""
 all_tasks = {"sort", "kvsort", "id", "rev", "rev2", "incr", "add", "left", "right", "bmul", "mul", "dup", "badd",

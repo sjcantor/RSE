@@ -16,8 +16,8 @@ from intervaltree import IntervalTree
 
 from resample import resample_musicnet
 
-
-dir_path = os.path.dirname(os.path.realpath(__file__))  # path of the directory this file is in
+# TODO - check that dir_path is musicnet_data
+dir_path = os.path.dirname(os.path.abspath(__file__))  # path of the directory this file is in
 raw_folder_path = os.path.join(dir_path, 'raw_musicnet')
 url = 'https://zenodo.org/record/5120004/files/musicnet.tar.gz'
 
@@ -84,10 +84,10 @@ def process_dataset():
 
 
 if __name__ == "__main__":
-    if not os.path.exists(f"musicnet_data/musicnet_11khz.npz"):
-        if not os.path.exists(f"musicnet_data/musicnet.npz"):
+    if not os.path.exists(os.path.join(dir_path,"musicnet_11khz.npz")):
+        if not os.path.exists(os.path.join(dir_path,"musicnet.npz")):
             download()
             process_dataset()
             run(["rm", '-r', os.path.join(dir_path, 'musicnet.tar.gz'), raw_folder_path])  # remove temporary files
-        resample_musicnet("musicnet_data/musicnet.npz", "musicnet_data/musicnet_11khz.npz", 44100, 11000)  # resample to 11khz
-        run(["rm", os.path.join(dir_path, 'musicnet_data/musinet.npz')])  # remove a temporary file
+        resample_musicnet(os.path.join(dir_path,"musicnet.npz"), os.path.join(dir_path, "musicnet_11khz.npz"), 44100, 11000)  # resample to 11khz
+        run(["rm", os.path.join(dir_path, 'musicnet.npz')])  # remove a temporary file

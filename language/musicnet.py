@@ -8,15 +8,17 @@ import config as cnf
 import data_utils
 from language.utils import LanguageTask
 
+musicnet_data_path = os.path.join(cnf.repo_dir, 'musicnet_data')
 str_fourier = f"fourier{cnf.musicnet_fourier_multiplier}" if cnf.musicnet_do_fourier_transform else "raw"
-MUSICNET_TRAIN = f"musicnet_data/musicnet_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy"
-MUSICNET_VALIDATION = f"musicnet_data/musicnet_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy"
-MUSICNET_TEST = f"musicnet_data/musicnet_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy"
+
+MUSICNET_TRAIN = os.path.join(musicnet_data_path, f"musicnet_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy")
+MUSICNET_VALIDATION = os.path.join(musicnet_data_path, f"musicnet_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy")
+MUSICNET_TEST = os.path.join(musicnet_data_path, f"musicnet_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy")
 
 def get_parsed_musicnet():
     print("No training set found that matches config.py. Getting musicnet and parsing it.")
-    run(["python3", "musicnet_data/get_musicnet.py"])  # download musicnet if it is missing
-    run(["python3", "musicnet_data/parse_file.py"])  # parse file so it can be processed by the model
+    run([cnf.python_ver, os.path.join(musicnet_data_path, 'get_musicnet.py')])  # download musicnet if it is missing
+    run([cnf.python_ver, os.path.join(musicnet_data_path, 'parse_file.py')])  # parse file so it can be processed by the model
 
 
 class Musicnet(LanguageTask):
@@ -26,8 +28,9 @@ class Musicnet(LanguageTask):
         self.training_set = []
         self.validation_set = []
         self.testing_set = []
-        if not os.path.exists(MUSICNET_TRAIN):
-            get_parsed_musicnet()
+        # TODO - shouldn't get dataset when transcribe creates this class
+        # if not os.path.exists(MUSICNET_TRAIN):
+        #     get_parsed_musicnet()
 
     def crop(self, xy_set):
         """Crop data to a smaller sized window."""
