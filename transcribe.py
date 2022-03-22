@@ -17,21 +17,30 @@ import matplotlib.colors as mcolors
 import mido
 import config as cnf
 
-from musicnet_data.resample import resample_musicnet
+from resample import resample_musicnet
 
 
 def wav_to_npz(filename_wav):
     """Converts wav file to npz file"""
     samplerate, data = wavfile.read(filename_wav)
+
+    # Handle stereo wave files
+    #print(data.shape)
+    #if len(data.shape) > 1 and data.shape[1] == 2:
+    #    data = data[:,0]
+    #print(data.shape)
+    # TODO - the below is a smarter way of doing this, but was having some issues. Fix later. It's also slow.
+    #print(data.shape, type(data))
+    if len(data.shape) > 1 and data.shape[1] == 2:
+        print('Handling a stereo file...')
+        data = np.array([(data[i,0] + data[i,1])/2 for i in data])[:,0] # average chanels, convert to numpy, remove 2nd row
+    #print(data[0:1][0:50], type(data))
+
     if max(data) > 2:
         print("The wav file should be normed to [-1,1]. Attempting to normalize")
         normed_data = data / (np.linalg.norm(data) + 10e-6)  # converts to interval [-1, 1]
     else:
         normed_data = data
-
-    # TODO - the below is a smarter way of doing this, but was having some issues. Fix later. It's also slow.
-    if len(data.shape) > 1 and data.shape[1] == 2:
-        data = np.array([(data[i,0] + data[i,1])/2 for i in data])[:,0] # average chanels, convert to numpy, remove 2nd row
 
     padding = np.zeros(samplerate, dtype=np.float32)
     padded_data = np.concatenate((padding, normed_data), axis=0)  # add 1 second for parser to cut off
@@ -196,7 +205,7 @@ if __name__ == "__main__":
     if not os.path.exists(results_file_path):
         samplerate = wav_to_npz(args.filename_wav)  # wav -> npz
         resample_musicnet(f"{filename}.npz", f"{filename}_11khz.npz", samplerate, 11000)  # resample to 11khz
-        parse_file_path = os.path.join(dir_path, "musicnet_data", "parse_file.py")
+        parse_file_path = os.path.join(dir_path, "parse_file.py")
         run([cnf.python_ver, parse_file_path, f"{filename}_11khz.npz"])  # parse file so it can be processed by the model
         tester_path = f"{os.path.join(dir_path, 'tester.py')}"
         run([cnf.python_ver, tester_path, inference_file_path, f"{filename}_results.npy"])  # run inference

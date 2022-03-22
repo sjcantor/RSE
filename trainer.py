@@ -38,14 +38,14 @@ from RSE_model import RSE
 import data_feeder
 
 
-def musicnet_full_validation():
+def music_full_validation():
     """Returns the logs for MusicNet validation on the entire dataset (validation or test)"""
     full_test_len = len(data_gen.test_set[cnf.task][cnf.forward_max])
     # rounds it up to the next size divisible by batch size:
     n_test_inputs = (full_test_len // cnf.batch_size) * cnf.batch_size + cnf.batch_size
 
     # calculate APS
-    predictions, labels = get_musicnet_predictions_and_labels(n_test_inputs)
+    predictions, labels = get_dataset_predictions_and_labels(n_test_inputs)
     n_overshoot = n_test_inputs - full_test_len  # inputs more than full test len
     if n_overshoot > 0:  # removes duplicates:
         predictions = predictions[:-(128 * n_overshoot)]
@@ -62,7 +62,7 @@ def musicnet_full_validation():
     return aps_test_summary, image_summary
 
 
-def musicnet_partial_validation():
+def music_partial_validation():
     """Returns the logs for a partial MusicNet validation (validates a subset of data to save time)"""
     n_test_inputs = cnf.musicnet_n_test_batches * cnf.batch_size
     n_trials = 2
@@ -70,7 +70,7 @@ def musicnet_partial_validation():
     # calculate APS
     avg_prec_scores = [0.0] * n_trials
     for trial in range(n_trials):
-        predictions, labels = get_musicnet_predictions_and_labels(n_test_inputs)
+        predictions, labels = get_dataset_predictions_and_labels(n_test_inputs)
         avg_prec_scores[trial] = average_precision_score(labels, predictions)
         print(f"Partial validation: average precision score {trial} = {avg_prec_scores[trial]:.5f}")
     print(f"Average: {np.average(avg_prec_scores):.5f}, stdev: {np.std(avg_prec_scores):.5f}\n")
@@ -83,7 +83,7 @@ def musicnet_partial_validation():
     return aps_test_summary, image_summary
 
 
-def get_musicnet_predictions_and_labels(n_test_inputs):
+def get_dataset_predictions_and_labels(n_test_inputs):
     """Returns n_test_inputs predictions and labels from the validation set"""
     predictions = []
     labels = []
@@ -194,7 +194,8 @@ with tf.Graph().as_default():
         sess.run(tf.local_variables_initializer())
 
         current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
-        if cnf.task == "musicnet":
+        # TODO here too, should I combine into one?
+        if cnf.task == "musicnet" or cnf.task == "music":
             str_fourier = f"F{cnf.musicnet_fourier_multiplier}" if cnf.musicnet_do_fourier_transform else "R"
             run_name = f"{current_time}_m{cnf.musicnet_window_size}{str_fourier}"
         else:
@@ -205,6 +206,7 @@ with tf.Graph().as_default():
         train_writer = tf.summary.FileWriter(output_dir)
 
         if cnf.load_prev:
+            print(f'Loading a saved model from {cnf.model_output}')
             saver1 = tf.train.Saver([var for var in tf.trainable_variables()])
             saver1.restore(sess, cnf.model_file)
 
@@ -229,10 +231,11 @@ with tf.Graph().as_default():
         print("accuracy on test length", cnf.forward_max, "=", long_accuracy)
 
         text_value = f''
-        if cnf.task == "musicnet": text_value += (
-                f'musicnet_window_size:{cnf.musicnet_window_size}, do_fourier_transform:{cnf.musicnet_do_fourier_transform}, '
+        # TODO not sure how to approach those config values in a generalized way
+        if cnf.task == "musicnet" or cnf.task == "music": text_value += (
+                f'{cnf.dataset}_window_size:{cnf.musicnet_window_size}, do_fourier_transform:{cnf.musicnet_do_fourier_transform}, '
                 f'fourier_multiplier: {cnf.musicnet_fourier_multiplier}, '
-                f'musicnet_n_test_batches: {cnf.musicnet_n_test_batches}, musicnet_visualise:{cnf.musicnet_visualise}, '
+                f'{cnf.dataset}_n_test_batches: {cnf.musicnet_n_test_batches}, musicnet_visualise:{cnf.musicnet_visualise}, '
             )
         text_value += (
             f'training_iters:{cnf.training_iters}, batch_size:{cnf.batch_size}, n_Benes_blocks:{cnf.n_Benes_blocks}, '
@@ -276,20 +279,25 @@ with tf.Graph().as_default():
                 avgLoss = 0
                 avgRegul = 0
 
+            # TODO you know the drill, this is so confusing
             # MusicNet - validation
-            if cnf.task == "musicnet" and step % cnf.musicnet_test_step == 0:
+            if (cnf.task == "musicnet" or cnf.task == "music") and step % cnf.musicnet_test_step == 0:
                 print("Validating...")
                 if step % cnf.musicnet_full_test_step == 0:
+                    print('Full validation...')
                     data_gen.test_counters = np.zeros(cnf.bin_max_len, dtype=np.int32)  # reset test counters
-                    aps_test_summary, image_summary = musicnet_full_validation()
+                    aps_test_summary, image_summary = music_full_validation()
                 else:
-                    aps_test_summary, image_summary = musicnet_partial_validation()
+                    print('Partial validation...')
+                    aps_test_summary, image_summary = music_partial_validation()
                 train_writer.add_summary(aps_test_summary, step)
                 train_writer.add_summary(image_summary, step)
                 train_writer.flush()
+                print('Saving model weights')
+                saver.save(sess, cnf.model_file)
 
             # MusicNet - reloading a subset of the training data
-            if cnf.task == "musicnet" and cnf.musicnet_subset and step % cnf.musicnet_resample_step == 0:
+            if (cnf.task == "musicnet" or cnf.task == "music") and cnf.musicnet_subset and step % cnf.musicnet_resample_step == 0:
                 print("Reloading a subset of the training data...", flush=True)
                 task.prepare_train_data()
                 data_gen.train_counters = np.zeros(cnf.bin_max_len, dtype=np.int32)  # reset train counters
@@ -305,11 +313,11 @@ with tf.Graph().as_default():
         print("Optimization Finished!")
 
         # MusicNet - testing
-        if cnf.task == "musicnet":
+        if cnf.task == "musicnet" or cnf.task == "music":
             print("Testing the trained model on the full test set...")
             task.prepare_test_data()
             data_gen.test_counters = np.zeros(cnf.bin_max_len, dtype=np.int32)  # reset test counters
-            aps_test_summary, image_summary = musicnet_full_validation()
+            aps_test_summary, image_summary = music_full_validation()
             train_writer.add_summary(aps_test_summary, step)
             train_writer.add_summary(image_summary, step)
             train_writer.flush()
@@ -318,7 +326,7 @@ with tf.Graph().as_default():
 
 
 # Test the generalization to longer examples
-if cnf.task != "musicnet":
+if cnf.task != "musicnet" and cnf.task != "music":
     test_length = 8
     data_gen.init()
 

@@ -24,15 +24,16 @@ from tensorflow.python.platform import gfile
 import config as cnf
 import task as tasks
 from language.lambada import LambadaTask
-from language.musicnet import Musicnet
+from language.music import MusicDataset
 from language.utils import LanguageTask
 
 
 def find_data_task(task: str) -> LanguageTask:
     if task == "lambada":
         return LambadaTask()
-    elif task == "musicnet":
-        return Musicnet()
+    # TODO haven't future-proofed with just music yet
+    elif task == "music" or task == "musicnet":
+        return MusicDataset()
     else:
         raise NotImplementedError("Task '{task}' not supported".format(task=task))
 

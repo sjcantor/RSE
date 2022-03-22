@@ -1,4 +1,12 @@
 __pycache__
 language/__pycache__
 
-musicnet_data/raw_musicnet
+musicnet_data/raw_musicnet/
+musicnet_data/*.npy
+musicnet_data/*.npz
+
+maestro_data/
+gpu_training/
+logs/
+*.zip
+test_transcribing/
