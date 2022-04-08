@@ -31,7 +31,6 @@ from language.utils import LanguageTask
 def find_data_task(task: str) -> LanguageTask:
     if task == "lambada":
         return LambadaTask()
-    # TODO haven't future-proofed with just music yet
     elif task == "music" or task == "musicnet":
         return MusicDataset()
     else:

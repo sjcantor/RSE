@@ -309,7 +309,6 @@ class RSE:
         if cnf.use_pre_trained_embedding:
             cur = self.pre_trained_embedding(x_in_indices)
         else:
-            # TODO temporary OR?
             if cnf.task == "musicnet" or cnf.task == "music":
                 # # 0 convolutions
                 # cur = tf.expand_dims(x_in_indices, axis=-1)
@@ -342,7 +341,6 @@ class RSE:
             else:
                 cur = self.embedding(x_in_indices)
 
-        # TODO another double reference
         if cnf.input_word_dropout_keep_prob < 1 and RSE_network.is_training and cnf.task != "musicnet" and cnf.task != "music":
             cur = tf.nn.dropout(cur, cnf.input_word_dropout_keep_prob, noise_shape=[batch_size, length, 1])
         if cnf.input_dropout_keep_prob < 1 and RSE_network.is_training:
@@ -359,7 +357,6 @@ class RSE:
 
         if cnf.task == "lambada":
             model = LambadaModel(y_in, self.n_classes, cnf.label_smoothing)
-        # TODO another duplicate case
         elif cnf.task == "musicnet" or cnf.task == "music":
             model = MusicNetModel(y_in, self.n_classes, cnf.label_smoothing)
         else:
@@ -369,7 +366,6 @@ class RSE:
         result = model.result(prediction)
         accuracy = model.accuracy(prediction)
         bpc = tf.constant(0.0)
-        # TODO you should know the deal by now
         if cnf.task == "musicnet" or cnf.task == "music":
             result, corrected_loss = model.calibrated_result(prediction)
             cost += corrected_loss * 0.1
@@ -399,7 +395,6 @@ class RSE:
             _, self.test_accuracy, self.allMem, _, _, self.result, bpc = self.create_loss(self.test_x, self.test_y,
                                                                                           test_length)
             test_summaries = [tf.summary.scalar("base/test_error", 1 - self.test_accuracy)]
-            # TODO anotha one
             if cnf.task == "musicnet" or cnf.task == "music":
                 pred_flat = tf.reshape(self.result, [-1])
                 labels_flat = tf.reshape(self.test_y[:, :128] - 1, [-1])  # gets 0/1 labels on 128 notes without padding
@@ -472,7 +467,6 @@ class RSE:
         tf.summary.scalar("base/error_longest", 1 - a)
         tf.summary.histogram("logits", logits)
 
-        # TODO boo ya
         if cnf.task != "musicnet" and cnf.task != "music":
             if RSE_network.gate_mem:
                 gate_img = tf.stack(RSE_network.gate_mem)

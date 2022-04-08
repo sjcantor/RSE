@@ -11,30 +11,12 @@ import config as cnf
 import data_utils
 from language.utils import LanguageTask
 
-# musicnet_data_path = os.path.join(cnf.repo_dir, 'musicnet_data')
-# maestro_data_path = os.path.join(cnf.repo_dir, 'maestro_data')
-# data_path = maestro_data_path if cnf.dataset == 'maestro' else musicnet_data_path
-# print(f'path for dataset:{data_path}')
 str_fourier = f"fourier{cnf.musicnet_fourier_multiplier}" if cnf.musicnet_do_fourier_transform else "raw"
-
-# MUSICNET_TRAIN = os.path.join(musicnet_data_path, f"musicnet_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy")
-# MUSICNET_VALIDATION = os.path.join(musicnet_data_path, f"musicnet_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy")
-# MUSICNET_TEST = os.path.join(musicnet_data_path, f"musicnet_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy")
-
-# MAESTRO_TRAIN = os.path.join(maestro_data_path, f"maestro_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy")
-# MAESTRO_VALIDATION = os.path.join(maestro_data_path, f"maestro_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy")
-# MAESTRO_TEST = os.path.join(maestro_data_path, f"maestro_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy")
 
 data_folder = os.path.join(cnf.repo_dir, f"{cnf.dataset}_data")
 TRAIN = os.path.join(data_folder, f"{cnf.dataset}_{str_fourier}_train_{cnf.musicnet_file_window_size}.npy")
 VALIDATION = os.path.join(data_folder, f"{cnf.dataset}_{str_fourier}_validation_{cnf.musicnet_file_window_size}.npy")
 TEST = os.path.join(data_folder, f"{cnf.dataset}_{str_fourier}_test_{cnf.musicnet_file_window_size}.npy")
-
-# print(f'[Debug log] Data folder: {data_folder} \nData train file: {TRAIN}')
-
-# TRAIN = MAESTRO_TRAIN if cnf.dataset == 'maestro' else MUSICNET_TRAIN
-# VALIDATION = MAESTRO_VALIDATION if cnf.dataset == 'maestro' else MUSICNET_VALIDATION
-# TEST = MAESTRO_TEST if cnf.dataset == 'maestro' else MUSICNET_TEST
 
 def get_parsed_dataset():
     print(f"No training set found that matches config.py. Getting {cnf.dataset} and parsing it.")
@@ -50,9 +32,6 @@ class MusicDataset(LanguageTask):
         self.training_set = []
         self.validation_set = []
         self.testing_set = []
-        # TODO - shouldn't get dataset when transcribe creates this class
-        # if not os.path.exists(MUSICNET_TRAIN):
-        #     get_parsed_musicnet()
         if not os.path.exists(TRAIN):
             get_parsed_dataset()
 
@@ -90,7 +69,6 @@ class MusicDataset(LanguageTask):
             self.sample_training_dataset_mmap()
         else:
             self.load_training_dataset()
-        # print(f'DEBUG: data_utils keys: {data_utils.train_set.keys()}')
         data_utils.train_set[f"{cnf.task}"][self.window_size] = self.training_set
 
     def prepare_validation_data(self):

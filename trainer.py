@@ -194,7 +194,6 @@ with tf.Graph().as_default():
         sess.run(tf.local_variables_initializer())
 
         current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
-        # TODO here too, should I combine into one?
         if cnf.task == "musicnet" or cnf.task == "music":
             str_fourier = f"F{cnf.musicnet_fourier_multiplier}" if cnf.musicnet_do_fourier_transform else "R"
             run_name = f"{current_time}_m{cnf.musicnet_window_size}{str_fourier}"
@@ -231,7 +230,6 @@ with tf.Graph().as_default():
         print("accuracy on test length", cnf.forward_max, "=", long_accuracy)
 
         text_value = f''
-        # TODO not sure how to approach those config values in a generalized way
         if cnf.task == "musicnet" or cnf.task == "music": text_value += (
                 f'{cnf.dataset}_window_size:{cnf.musicnet_window_size}, do_fourier_transform:{cnf.musicnet_do_fourier_transform}, '
                 f'fourier_multiplier: {cnf.musicnet_fourier_multiplier}, '
@@ -279,7 +277,6 @@ with tf.Graph().as_default():
                 avgLoss = 0
                 avgRegul = 0
 
-            # TODO you know the drill, this is so confusing
             # MusicNet - validation
             if (cnf.task == "musicnet" or cnf.task == "music") and step % cnf.musicnet_test_step == 0:
                 print("Validating...")

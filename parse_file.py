@@ -30,7 +30,6 @@ np_load_old = np.load
 np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
 dir_path = os.path.dirname(os.path.abspath(__file__)) # absolute path to where this file is (musicnet_data/)
 # TODO - when transcribe calls this file, it shouldn't try to grab the dataset
-# TODO 2 - parse_file can't see the config, but should know which dataset to load
 data = np.load(open(data_file, 'rb'), encoding='latin1', mmap_mode='r')
 # data = np.load(open(os.path.join(dir_path, 'musicnet_11khz.npz'), 'rb'), encoding='latin1', mmap_mode='r')
 np.load = np_load_old
@@ -53,8 +52,6 @@ def create_set(recording_IDs, stride, mode, filename=None):
     """Create a set of input - label pairs."""
 
     str_fourier = f"fourier{fourier_multiplier}" if do_fourier_transform else "raw"
-    # TODO same thing as above, needs to know if musicnet or maestro
-    # if filename is None: filename = f"musicnet_{str_fourier}_{mode}_{n_features}.npy"
     if filename is None: filename = f"{cnf.dataset}_{str_fourier}_{mode}_{n_features}.npy"
 
     label_indices = []  # list of the indices of the labels within a window. E.g. [128, 256, 384] for n_features=512

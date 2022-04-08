@@ -25,16 +25,9 @@ def wav_to_npz(filename_wav):
     samplerate, data = wavfile.read(filename_wav)
 
     # Handle stereo wave files
-    #print(data.shape)
-    #if len(data.shape) > 1 and data.shape[1] == 2:
-    #    data = data[:,0]
-    #print(data.shape)
-    # TODO - the below is a smarter way of doing this, but was having some issues. Fix later. It's also slow.
-    #print(data.shape, type(data))
     if len(data.shape) > 1 and data.shape[1] == 2:
         print('Handling a stereo file...')
         data = np.array([(data[i,0] + data[i,1])/2 for i in data])[:,0] # average chanels, convert to numpy, remove 2nd row
-    #print(data[0:1][0:50], type(data))
 
     if max(data) > 2:
         print("The wav file should be normed to [-1,1]. Attempting to normalize")

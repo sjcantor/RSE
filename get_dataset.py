@@ -17,11 +17,7 @@ import config as cnf
 
 from resample import resample_musicnet
 
-# TODO - check that dir_path is musicnet_data
 dir_path = os.path.dirname(os.path.abspath(__file__))  # path of the directory this file is in
-# raw_folder_path = os.path.join(dir_path, 'raw_musicnet')
-# maestro_path = os.path.join(dir_path, '..', 'maestro_data')
-# TODO maybe this can be improved? (use just one path and check the config dataset)
 musicnet_path = os.path.join(cnf.repo_dir, 'musicnet_data')
 maestro_path = os.path.join(cnf.repo_dir, 'maestro_data')
 url = 'https://zenodo.org/record/5120004/files/musicnet.tar.gz'
@@ -92,7 +88,6 @@ def process_maestro_dataset():
     dataset = {}
     items = [y for x in os.walk(maestro_path) for y in glob(os.path.join(x[0], '*.csv'))]
     print(f'Length of items in maestro: {len(items)}, {maestro_path}')
-    # print(f'ITEMS: {items}')
     item_nr = 1
     for item in items:  # iterate over all recording IDs
         if not item.endswith('.csv'): continue
@@ -101,17 +96,11 @@ def process_maestro_dataset():
         file_extension = item.rfind('.')
         file_path = item.rfind('/')
         uid = str(item[file_path+1:file_extension])  # recording ID
-        # print(f'UID:{uid}')
-        # if len(uid) != 4: assert False
         train_or_test = item.rfind(f'_labels/')
-        # print(f'item:{item}')
-        # print(f'path found: {train_or_test}')
         wav_filename = item[:train_or_test]+f"_data/{uid}.wav"
         _, input_audio = wavfile.read(wav_filename)  # retrieve input
-        # TODO - the below is a smarter way of doing this, but was having some issues. Fix later. It's also slow.
         if len(input_audio.shape) > 1 and input_audio.shape[1] == 2:
             input_audio = input_audio[:,0] # just take one channel for now
-            # input_audio = np.array([(input_audio[i,0] + input_audio[i,1])/2 for i in input_audio])[:,0] # average chanels, convert to numpy, remove 2nd row
         with open(item, 'r') as f:  # retrieve label
             label_tree = IntervalTree()
             reader = csv.DictReader(f, delimiter=',')
@@ -133,13 +122,13 @@ mode = 'maestro'
 
 if __name__ == "__main__":
     if mode == 'maestro':
-        print('Training off maestro!')
+        print('Training using Maestro')
         if not os.path.exists(os.path.join(maestro_path,"maestro_11khz.npz")):
             if not os.path.exists(os.path.join(maestro_path,"maestro.npz")):
                 process_maestro_dataset()
             resample_musicnet(os.path.join(maestro_path,'maestro.npz'), os.path.join(maestro_path, 'maestro_11khz.npz'), 44100, 11000)
     else: 
-        print('no maestro, musinet :(')   
+        print('Training using MusicNet')   
         if not os.path.exists(os.path.join(dir_path,"musicnet_11khz.npz")):
             if not os.path.exists(os.path.join(dir_path,"musicnet.npz")):
                 download()

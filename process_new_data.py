@@ -35,11 +35,6 @@ def convert_maestro_dataset_midi(folder_path):
                 print(file)
                 
                 midi = mido.MidiFile(full_path, clip=True)
-                
-                #print("start")
-                #with open(os.path.join(root, "midi_info.txt"), 'w') as f:
-                #    f.write(str(midi))
-                #print("end")
             
                 notelist = []
                 bpm = 0
@@ -53,11 +48,11 @@ def convert_maestro_dataset_midi(folder_path):
                         bpm = mido.tempo2bpm(msg.tempo)
                 
                 
-                    current_ticks += msg.time * 2 * ticks_per_beat # no clue why, but msg.time is exactly the midi time value / 960. This recitifies it, still no clue why this happens
+                    current_ticks += msg.time * 2 * ticks_per_beat # msg.time is exactly the midi time value / 960. This recitifies it
                     current_beats = float(current_ticks / ticks_per_beat)
                     
                     current_seconds = (current_beats / bpm) * 60
-                    current_timestamp = current_seconds * 44100 # they want the sample # I guess. IDK why musicnet formatted like this.
+                    current_timestamp = current_seconds * 44100 # complying with MusicNet formatting
                     
                     
                     if msg.type == "note_off":
@@ -82,10 +77,6 @@ def convert_maestro_dataset_midi(folder_path):
                                 if note.note == msg.note:
                                     if note.end_beat != 0.00:
                                         print("error - two consecutive off notes: " + str(note.note) + " " + str(note.end_beat)) # shouldn't be an issue even if it happens, but if it does something is wrong
-                                        #f = open("temp_notelist.txt", "w")
-                                        #for note_ in notelist:
-                                        #    f.write(str(note_) + "\n")
-                                        #f.close()
                                         
                                     else:
                                         note.end_beat = current_beats - note.start_beat
@@ -114,7 +105,6 @@ def convert_maestro_dataset_midi(folder_path):
                                         elif note.end_beat > 2.9 and note.end_beat <= 3.1:	note.note_value ="Dotted Half"
                                         elif note.end_beat > 3.9 and note.end_beat <= 4.1:	note.note_value ="Whole"
                                         else:
-                                            #print("unknown note duration " + str(note.end_beat) + " " + str(note.note))
                                             unknown_ctr += 1
                                             note.note_value = "Unknown"
                                         break
@@ -128,22 +118,16 @@ def convert_maestro_dataset_midi(folder_path):
                     print("error - set_tempo message not found")
                 
                 
-                #print(midi)
-                #with open(os.path.join(root, "midi_info.txt"), 'w') as f:
-                #    f.write(str(midi))
-                #break
                 
                 # write data to CSV
                 
                 f = open(os.path.join(root,file[:len(file) - 5] + ".csv"), "w")
-                #print(os.path.join(root,file[:len(file) - 5] + ".csv"))
                 f.write("start_time,end_time,instrument,note,start_beat,end_beat,note_value\n")
                 for note in notelist:
                     f.write(str(note) + "\n")
                 f.close()
                 
                 print(f"unknown notes: {unknown_ctr}, total notes: {len(notelist)}, %age: {100* unknown_ctr / len(notelist)}")
-                #break
             
                 
             
