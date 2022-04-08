@@ -11,6 +11,7 @@ import numpy as np
 from numpy.lib.format import open_memmap
 from scipy.fft import rfft  # real fast Fourier transform
 import os
+import config as cnf
 
 n_features = 8192  # number of features (the window size)
 do_fourier_transform = True
@@ -22,24 +23,36 @@ stride_train = 512  # samples between windows
 stride_test = 128  # stride in test set
 data_type = 'float32'
 
+data_folder = os.path.join(cnf.repo_dir, f"{cnf.dataset}_data")
+data_file = os.path.join(data_folder, f"{cnf.dataset}_11khz.npz")
+
 np_load_old = np.load
 np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
 dir_path = os.path.dirname(os.path.abspath(__file__)) # absolute path to where this file is (musicnet_data/)
 # TODO - when transcribe calls this file, it shouldn't try to grab the dataset
+data = np.load(open(data_file, 'rb'), encoding='latin1', mmap_mode='r')
 # data = np.load(open(os.path.join(dir_path, 'musicnet_11khz.npz'), 'rb'), encoding='latin1', mmap_mode='r')
 np.load = np_load_old
 
 # split the dataset into train, validation and test
-test_IDs = ['2303', '2382', '1819']
-validation_IDs = ['2131', '2384', '1792', '2514', '2567', '1876']
-# train_IDs = [ID for ID in data.files if ID not in (test_IDs + validation_IDs)]
+test_IDs = ['MIDI-Unprocessed_01_R1_2011_MID--AUDIO_R1-D1_02_Track02_wav', 
+            'MIDI-Unprocessed_01_R1_2011_MID--AUDIO_R1-D1_03_Track03_wav',
+            'MIDI-Unprocessed_01_R1_2011_MID--AUDIO_R1-D1_04_Track04_wav']
+validation_IDs = ['MIDI-Unprocessed_01_R1_2011_MID--AUDIO_R1-D1_05_Track05_wav',
+                  'MIDI-Unprocessed_01_R1_2011_MID--AUDIO_R1-D1_06_Track06_wav', 
+                  'MIDI-Unprocessed_02_R1_2011_MID--AUDIO_R1-D1_08_Track08_wav', 
+                  'MIDI-Unprocessed_02_R1_2011_MID--AUDIO_R1-D1_09_Track09_wav', 
+                  'MIDI-Unprocessed_02_R1_2011_MID--AUDIO_R1-D1_10_Track10_wav', 
+                  'MIDI-Unprocessed_02_R2_2011_MID--AUDIO_R2-D1_02_Track02_wav',
+                  'MIDI-Unprocessed_02_R2_2011_MID--AUDIO_R2-D1_03_Track03_wav']
+train_IDs = [ID for ID in data.files if ID not in (test_IDs + validation_IDs)]
 
 
 def create_set(recording_IDs, stride, mode, filename=None):
     """Create a set of input - label pairs."""
 
     str_fourier = f"fourier{fourier_multiplier}" if do_fourier_transform else "raw"
-    if filename is None: filename = f"musicnet_{str_fourier}_{mode}_{n_features}.npy"
+    if filename is None: filename = f"{cnf.dataset}_{str_fourier}_{mode}_{n_features}.npy"
 
     label_indices = []  # list of the indices of the labels within a window. E.g. [128, 256, 384] for n_features=512
     stride_labels = stride_test  # stride for labels and notes_test is the same
@@ -84,7 +97,7 @@ def create_set(recording_IDs, stride, mode, filename=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename')
+    parser.add_argument('filename', nargs='?')
     args = parser.parse_args()
     if args.filename:
         np_load_old = np.load

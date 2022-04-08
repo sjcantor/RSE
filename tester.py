@@ -194,7 +194,7 @@ if __name__ == '__main__':
     parser.add_argument('inference_file_path')
     parser.add_argument('inference_file_name')
     args = parser.parse_args()
-    if cnf.task == "musicnet":
+    if cnf.task == "musicnet" or cnf.task == "music":
         if args.inference_file_path:
             run_test_musicnet(inference_file_path=args.inference_file_path, filename=args.inference_file_name, save_results=True)
     else:
